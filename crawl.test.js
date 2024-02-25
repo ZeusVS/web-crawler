@@ -1,4 +1,5 @@
 const { normalizeURL, getURLsFromHTML } = require('./crawl.js');
+const { sortDict } = require('./report.js');
 const { test, expect } = require('@jest/globals');
 
 test('normalizeURL base', () => {
@@ -54,5 +55,11 @@ test('getURLsFromHTML handle error', () => {
     const url = 'https://test.com/discardme'
     const input = getURLsFromHTML(htmlBody, url);
     const expected = [];
+    expect(input).toEqual(expected);
+});
+
+test('sortDict test', () => {
+    const input = sortDict({'third': 3, 'second': 2, 'first': 1});
+    const expected = {'first': 1, 'second': 2, 'third': 3};
     expect(input).toEqual(expected);
 });

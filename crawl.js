@@ -28,8 +28,32 @@ function getURLsFromHTML(htmlBody, baseURL) {
     return urls
 }
 
-async function crawlPage(currentURL) {
+async function crawlPage(baseURL, currentURL, pages) {
     try {
+        // If the current URL is not on the same domain as the base URL just return pages
+        if (new URL(baseURL).domain !== new URL(currentURL).domain) {
+            return pages;
+        }
+        // If the URL already exists in the pages dict, just increment the count and return
+        const normalizedURL = normalizeURL(currentURL);
+        if (normalizedURL in pages) {
+            pages[normalizedURL]++;
+            return pages;
+
+        // If it doesn't already exist, create it's pages entry
+        } else {
+            // If the current URL is the base URL set it to 0 
+            // because we start here without an actual link leading here
+            if (currentURL = baseURL) {
+                pages[normalizedURL] = 0
+            } else {
+                pages[normalizedURL] = 1
+            }
+        }
+
+        // Show crawler progress in console
+        console.log(`Crawling: ${normalizedURL}`)
+        // Start to get all URLs from the response html
         const response = await fetch(currentURL);
         if (response.status >= 400) {
             console.log(`Error connecting to ${currentURL}`);
@@ -40,7 +64,11 @@ async function crawlPage(currentURL) {
             return;
         } 
         const html = await response.text();
-        console.log(html);
+        const urls = getURLsFromHTML(html, baseURL);
+        for (const url of urls) {
+            pages = await crawlPage(baseURL, url, pages);
+        }
+        return pages;
     } catch (err) {
         console.log(err.message);
     }
