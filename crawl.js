@@ -31,7 +31,7 @@ function getURLsFromHTML(htmlBody, baseURL) {
 async function crawlPage(baseURL, currentURL, pages) {
     try {
         // If the current URL is not on the same domain as the base URL just return pages
-        if (new URL(baseURL).domain !== new URL(currentURL).domain) {
+        if (new URL(baseURL).hostname !== new URL(currentURL).hostname) {
             return pages;
         }
         // If the URL already exists in the pages dict, just increment the count and return
@@ -44,10 +44,10 @@ async function crawlPage(baseURL, currentURL, pages) {
         } else {
             // If the current URL is the base URL set it to 0 
             // because we start here without an actual link leading here
-            if (currentURL = baseURL) {
-                pages[normalizedURL] = 0
+            if (currentURL === baseURL) {
+                pages[normalizedURL] = 0;
             } else {
-                pages[normalizedURL] = 1
+                pages[normalizedURL] = 1;
             }
         }
 
@@ -57,11 +57,11 @@ async function crawlPage(baseURL, currentURL, pages) {
         const response = await fetch(currentURL);
         if (response.status >= 400) {
             console.log(`Error connecting to ${currentURL}`);
-            return;
-        } else if (!response.headers.get('Content-Type').includes('text/html')) {
+            return pages;
+        } else if (!response.headers.get('Content-Type').startsWith('text/html')) {
             console.log(response.headers.get('Content-Type'));
             console.log(`Error: ${currentURL} is not a text/html content website`);
-            return;
+            return pages;
         } 
         const html = await response.text();
         const urls = getURLsFromHTML(html, baseURL);
@@ -71,6 +71,8 @@ async function crawlPage(baseURL, currentURL, pages) {
         return pages;
     } catch (err) {
         console.log(err.message);
+        // Still return the pages object, so that atleast it will return something
+        return pages;
     }
 }
 
